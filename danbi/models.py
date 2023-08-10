@@ -10,7 +10,7 @@ class Task(models.Model):  # Task 모델 팀명, 업무명, 업무내용, 완료
     title = models.CharField(max_length=30)
     content = models.TextField()
     is_complete = models.BooleanField(default=False)
-    completed_date = models.DateTimeField()
+    completed_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -19,16 +19,15 @@ class SubTask(models.Model):  # SubTask 모델 팀명, 업무명, 완료여부, 
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="team_subtasks")
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="task_subtasks")
     is_complete = models.BooleanField(default=False)
-    completed_date = models.DateTimeField()
+    completed_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
 
 # User 부분은 앱기능을 따로 만들어서 로그인 회원가입을 구현
 # JWT 토큰을 이용해서 로그인 회원가입 구현 예정
-# fommater를 이용해서 black 사용
 
-# 시나리오
+
 """
 단비교육에 김윙크 사원이 단비팀으로 입사를 했습니다.
 김윙크 사원이 업무를 할당받았습니다. 혼자서는 업무를 처리 할 수 없어 다른 팀들의 도움이 필요합니다.
