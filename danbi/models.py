@@ -1,11 +1,33 @@
 from django.db import models
+from djanog.contrib.auth.models import AbstractUser, BaseUserManager
 
 
 class Team(models.Model):  # Team 모델 단비, 다래, 블라블라, 철로, 땅이, 해태, 수피
     name = models.CharField(max_length=50, unique=True)
 
 
+class UserManager(BaseUserManager):  # UserManager 모델 유저 생성 및 슈퍼유저 생성
+    def create_user(self, username, password, **extra_fields):
+        user = self.model(username=username, **extra_fields)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_superuser(self, username, password, **extra_fields):
+        user = self.create_user(username, password, **extra_fields)
+        user.is_superuser = True
+        user.save()
+        return user
+
+
+class User(AbstractUser):  # User 모델 사용자이름, 비밀번호, 팀명
+    username = models.CharField(max_length=50, unique=True)
+    pw = models.CharField(max_length=50)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="users")
+
+
 class Task(models.Model):  # Task 모델 팀명, 업무명, 업무내용, 완료여부, 완료일자, 생성일자, 수정일자
+    create_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_tasks")
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="tasks")
     title = models.CharField(max_length=30)
     content = models.TextField()
@@ -22,10 +44,6 @@ class SubTask(models.Model):  # SubTask 모델 팀명, 업무명, 완료여부, 
     completed_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-
-
-# User 부분은 앱기능을 따로 만들어서 로그인 회원가입을 구현
-# JWT 토큰을 이용해서 로그인 회원가입 구현 예정
 
 
 """
@@ -84,18 +102,3 @@ ex) 단비 Team이 업무(Task) 생성 시 하위 업무(SubTask)단비, 다래,
 - pw ( )
 - team ()
 """
-
-# Team 모델 단비, 다래, 블라블라, 철로, 땅이, 해태, 수피 (o)
-# Task 모델 팀명, 업무명, 업무내용, 완료여부, 완료일자, 생성일자, 수정일자 (o)
-# SubTask 모델 팀명, 업무명, 완료여부, 완료일자, 생성일자, 수정일자 (o)
-# (1) Task 생성시 한개 이상의 팀을 설정해야함 ()
-# (2) Task 생성하는 팀이 반드시 하위업무에 포함되지 않아도 됨 ()
-# (3) 정해진 7개의 팀 이외에는 다른 팀에 하위업무를 부여할 수 없음 ()
-# (4) Task 수정시 하위업무의 팀들도 수정 가능 ()
-# (5) 완료된 하위업무에 대해서는 삭제처리 불가능 ()
-# (6) Task 조회시 하위업무에 본인 팀이 포함되어 있다면 업무목록에서 함께 조회가 가능해야함 ()
-# (7) Task 조회시 하위업무의 업무 처리여부를 확인할 수 있어야함 ()
-# (8) Task는 작성자 이외에 수정이 불가능 ()
-# (9) Task에 할당된 하위업무의 팀은 수정, 변경 가능해야함. 단 해당 하위업무가 완료되었다면 삭제되지 않아야함 ()
-# (10) Task의 모든 하위업무가 완료되면 해당 상위업무는 자동으로 완료처리가 되어야함 ()
-# (11) 하위업무 완료처리는 소속된 팀만 처리 가능 ()
