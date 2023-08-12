@@ -1,34 +1,17 @@
 from django.db import models
-from djanog.contrib.auth.models import AbstractUser, BaseUserManager
+from users.models import User
 
 
 class Team(models.Model):  # Team 모델 단비, 다래, 블라블라, 철로, 땅이, 해태, 수피
     name = models.CharField(max_length=50, unique=True)
 
-
-class UserManager(BaseUserManager):  # UserManager 모델 유저 생성 및 슈퍼유저 생성
-    def create_user(self, username, password, **extra_fields):
-        user = self.model(username=username, **extra_fields)
-        user.set_password(password)
-        user.save()
-        return user
-
-    def create_superuser(self, username, password, **extra_fields):
-        user = self.create_user(username, password, **extra_fields)
-        user.is_superuser = True
-        user.save()
-        return user
-
-
-class User(AbstractUser):  # User 모델 사용자이름, 비밀번호, 팀명
-    username = models.CharField(max_length=50, unique=True)
-    pw = models.CharField(max_length=50)
-    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="users")
+    def __str__(self):
+        return self.name
 
 
 class Task(models.Model):  # Task 모델 팀명, 업무명, 업무내용, 완료여부, 완료일자, 생성일자, 수정일자
     create_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_tasks")
-    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="tasks")
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="team_tasks")
     title = models.CharField(max_length=30)
     content = models.TextField()
     is_complete = models.BooleanField(default=False)
@@ -101,4 +84,19 @@ ex) 단비 Team이 업무(Task) 생성 시 하위 업무(SubTask)단비, 다래,
 - username ( )
 - pw ( )
 - team ()
+"""
+# 조건
+"""
+업무 생성 시, 한 개 이상의 팀을 설정해야합니다.(1)
+단, 업무(Task)를 생성하는 팀이 반드시 하위업무(SubTask)에 포함되지는 않습니다.(2)
+단, 정해진 7개의 팀 이외에는 다른 팀에 하위업무(SubTask)를 부여할 수 없습니다.(3)
+단, 업무(Task)를 수정할 경우 하위업무(SubTask)의 팀들도 수정 가능합니다.(4) 
+단, 완료된 하위업무(SubTask)에 대해서는 삭제처리는 불가능합니다.(5)
+업무(Task) 조회 시 하위업무(SubTask)에 본인 팀이 포함되어 있다면 업무목록에서 함께 조회가 가능해야합니다.(6)
+업무(Task) 조회 시 하위업무(SubTask)의 업무 처리여부를 확인할 수 있어야 합니다.(7)
+업무(Task)는 작성자 이외에 수정이 불가합니다.(8)
+업무(Task)에 할당된 하위업무(SubTask)의 팀(Team)은 수정, 변경 가능해야 합니다. 단 해당 하위업무(SubTask)가 완료되었다면 삭제되지
+않아야 합니다.(9)
+업무(Task)의 모든 하위업무(SubTask)가 완료되면 해당 상위업무(Task)는 자동으로 완료처리가 되어야합니다.(10)
+하위업무(SubTask) 완료 처리는 소속된 팀만 처리 가능합니다.(11)
 """
